@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+require 'yaml'
+
+handlers = {
+  'softlayer' => lambda do |hash|
+    <<-EOF
+export {SL_USERNAME,SOFTLAYER_USERNAME}="#{hash['username']}"
+export {SL_API_KEY,SOFTLAYER_API_KEY}="#{hash['api_key']}"
+    EOF
+  end,
+
+  'aws' => lambda do |hash|
+    <<-EOF
+export AWS_ACCESS_KEY="#{hash['access_key']}"
+export AWS_SECRET_KEY="#{hash['secret_key']}"
+    EOF
+  end
+}
+
+handler_name, handler_env = ARGV[0..2]
+handler = handlers[handler_name]
+unless handler
+  $stderr.puts 'unknown handler name'
+  exit 1
+end
+
+data_path = File.expand_path('../data.yml', File.realpath(__FILE__))
+unless File.exist?(data_path)
+  $stderr.puts 'data.yml is missing'
+  exit 1
+end
+data = YAML.load_file(data_path)
+
+hash = data.fetch(handler_name, {}).fetch(handler_env, {})
+if hash.empty?
+  $stderr.puts 'unknown env'
+  exit 1
+end
+puts handler.call(hash)

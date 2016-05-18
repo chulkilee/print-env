@@ -1,0 +1,10 @@
+---
+aws:
+  dev:
+    access_key: foo
+    secret_key: bar
+
+softlayer:
+  dev:
+    username: foo
+    api_key: bar
